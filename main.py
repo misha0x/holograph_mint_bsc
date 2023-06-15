@@ -4,16 +4,15 @@ import time
 import random
 from termcolor import cprint
 
-time_ot = 50
+time_ot = 100
 time_do = 200
 
 # RPCs
-polygon_rpc_url = 'https://rpc.ankr.com/polygon'
-w3 = Web3(Web3.HTTPProvider(polygon_rpc_url))
+w3 = Web3(Web3.HTTPProvider('https://rpc.ankr.com/bsc'))
 # ABIs
 abi = json.load(open('router_abi.json'))
-contr_polygon_address = w3.to_checksum_address('0x8C531f965C05Fab8135d951e2aD0ad75CF3405A2')
-nft_contract = w3.eth.contract(address=contr_polygon_address, abi=abi)
+contract_address = w3.to_checksum_address('0x8C531f965C05Fab8135d951e2aD0ad75CF3405A2')
+nft_contract = w3.eth.contract(address=contract_address, abi=abi)
 
 with open("privates.txt", "r") as f:
     keys_list = [row.strip() for row in f if row.strip()]
@@ -36,12 +35,12 @@ for wallet_number, PRIVATE_KEY in numbered_keys:
             data
         ).build_transaction({
             'from': address,
-            'value': w3.to_wei(1, 'wei'),
-            'gasPrice': w3.eth.gas_price,
+            #'value': w3.to_wei(1, 'wei'),
+            'gasPrice': w3.to_wei(random.randint(1000, 1250)/1000, 'gwei'), #w3.eth.gas_price,
             'nonce': w3.eth.get_transaction_count(address),
         })
         gasLimit = w3.eth.estimate_gas(swap_txn)
-        swap_txn['gas'] = int(gasLimit + gasLimit * 0.5)
+        swap_txn['gas'] = int(gasLimit * 1.1)
         signed_swap_txn = w3.eth.account.sign_transaction(swap_txn, PRIVATE_KEY)
         swap_txn_hash = w3.eth.send_raw_transaction(signed_swap_txn.rawTransaction)
         print(f"Transaction: https://polygonscan.com/tx/{swap_txn_hash.hex()}")
